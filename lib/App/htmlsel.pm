@@ -17,7 +17,7 @@ $SPEC{htmlsel} = {
     summary => 'Select HTML::Element nodes using CSel syntax',
     args => {
         %App::CSelUtils::foosel_common_args,
-        %App::CSelUtils::foosel_struct_action_args,
+        %App::CSelUtils::foosel_tree_action_args,
     },
 };
 sub htmlsel {
