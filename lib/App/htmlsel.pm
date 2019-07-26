@@ -57,6 +57,24 @@ sub htmlsel {
                         @children;
                     },
                 },
+                {
+                    action   => 'add',
+                    sub_name => 'class',
+                    code     => sub {
+                        $_[0]{class};
+                    },
+                },
+                {
+                    action   => 'add',
+                    sub_name => 'preview',
+                    code     => sub {
+                        my $res = $_[0]->as_HTML;
+                        $res =~ s/\A\s+//s;
+                        $res = substr($res, 0, 22)."..." if length($res) > 25;
+                        $res =~ s/\n/ /g;
+                        $res;
+                    },
+                },
             ],
         );
     }
@@ -69,10 +87,12 @@ sub htmlsel {
         unless @matches <= 1;
 
     for my $action (@$actions) {
-        if ($action eq 'print') {
-            #$action = 'print_func_or_meth:meth:value.func:App::jsonsel::_encode_json';
+        if ($action eq 'print' || $action eq 'print_as_string') {
             $action = 'print_method:as_HTML';
-        }
+        } elsif ($action eq 'dump') {
+            #$action = 'dump:tag.class.id';
+            $action = 'dump:preview';
+       }
     }
 
     App::CSelUtils::do_actions_on_nodes(
