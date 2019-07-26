@@ -1,0 +1,50 @@
+#!perl
+
+# DATE
+# VERSION
+
+use 5.010001;
+use strict;
+use warnings;
+
+use Perinci::CmdLine::Any;
+
+Perinci::CmdLine::Any->new(
+    url => '/App/htmlsel/htmlsel',
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+ % htmlsel '.Element[tag="p"] .Element[tag="b"]' file.html
+
+
+=head1 DESCRIPTION
+
+This utility uses CSel to select against a tree of L<HTML::Element> nodes
+constructed by L<HTML::TreeBuilder>. You probably want to use L<html-css-sel>
+instead.
+
+About the tree: the root node is HTML::TreeBuilder object. HTML::TreeBuilder is
+a subclass of HTML::Element. All the other nodes are HTML::Element objects. This
+utility allows you to omit the C<HTML::> prefix, so to select any node you can
+use:
+
+ .Element
+
+which means to select any HTML::Element object (as well as instances of
+HTML::Element subclasses).
+
+
+=head1 SEE ALSO
+
+L<Data::CSel>
+
+L<html-css-sel> (from L<App::html::css::sel>), similar utility to select HTML
+tree nodes but using CSS Selector syntax instead of L<CSel|Data::CSel> syntax.
+It's what people normally use.
+
+Other utilities that use CSel against various data: L<ddsel>, L<jsonsel>,
+L<orgsel>, L<podsel>, L<ppisel>, L<yamlsel>.
