@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use App::CSelUtils;
-use Scalar::Util qw(blessed refaddr);
+use Scalar::Util qw(blessed);
 
 our %SPEC;
 
@@ -16,88 +16,68 @@ $SPEC{htmlsel} = {
     v => 1.1,
     summary => 'Select HTML::Element nodes using CSel syntax',
     args => {
-        %App::CSelUtils::foosel_common_args,
-        %App::CSelUtils::foosel_tree_action_args,
+        %App::CSelUtils::foosel_args_common,
     },
 };
 sub htmlsel {
-    my %args = @_;
+    App::CSelUtils::foosel(
+        @_,
+        code_read_tree => sub {
+            my $args = shift;
 
-    my $expr = $args{expr};
-    my $actions = $args{actions};
+            require HTML::TreeBuilder;
+            my $tree;
+            if ($args->{file} eq '-') {
+                binmode STDIN, ":encoding(utf8)";
+                $tree = HTML::TreeBuilder->new->parse_content(join "", <>);
+            } else {
+                #require File::Slurper;
+                $tree = HTML::TreeBuilder->new->parse_file($args->{file});
+            }
 
-    # parse first so we can bail early on error without having to read the input
-    require Data::CSel;
-    Data::CSel::parse_csel($expr)
-          or return [400, "Invalid CSel expression '$expr'"];
+          PATCH: {
+                last if $App::htmlsel::patch_handle;
+                require Module::Patch;
+                $App::htmlsel::patch_handle = Module::Patch::patch_package(
+                    'HTML::Element', [
+                        {
+                            action   => 'add',
+                            sub_name => 'children',
+                            code     => sub {
+                                my @children =
+                                    grep { blessed($_) && $_->isa('HTML::Element') }
+                                    @{ $_[0]{_content} };
+                                #use DD; dd \@children;
+                                @children;
+                            },
+                        },
+                        {
+                            action   => 'add',
+                            sub_name => 'class',
+                            code     => sub {
+                                $_[0]{class};
+                            },
+                        },
+                    ], # patch actions
+                ); # patch_package()
+            } # PATCH
+            $tree;
+        }, # code_read_tree
 
-    require HTML::TreeBuilder;
-    my $tree;
-    if ($args{file} eq '-') {
-        binmode STDIN, ":encoding(utf8)";
-        $tree = HTML::TreeBuilder->new->parse_content(join "", <>);
-    } else {
-        #require File::Slurper;
-        $tree = HTML::TreeBuilder->new->parse_file($args{file});
-    }
+        csel_opts => {class_prefixes=>['HTML']},
 
-    my $patch_handle;
-  PATCH: {
-        require Module::Patch;
-        $patch_handle = Module::Patch::patch_package(
-            'HTML::Element', [
-                {
-                    action   => 'add',
-                    sub_name => 'children',
-                    code     => sub {
-                        my @children =
-                            grep { blessed($_) && $_->isa('HTML::Element') }
-                            @{ $_[0]{_content} };
-                        #use DD; dd \@children;
-                        @children;
-                    },
-                },
-                {
-                    action   => 'add',
-                    sub_name => 'class',
-                    code     => sub {
-                        $_[0]{class};
-                    },
-                },
-                {
-                    action   => 'add',
-                    sub_name => 'preview',
-                    code     => sub {
-                        my $res = $_[0]->as_HTML;
-                        $res =~ s/\A\s+//s;
-                        $res = substr($res, 0, 22)."..." if length($res) > 25;
-                        $res =~ s/\n/ /g;
-                        $res;
-                    },
-                },
-            ],
-        );
-    }
+        code_transform_node_actions => sub {
+            my $args = shift;
 
-    my @matches = Data::CSel::csel(
-        {class_prefixes=>['HTML']}, $expr, $tree);
-
-     # skip root node itself to avoid duplication
-    @matches = grep { refaddr($_) ne refaddr($tree) } @matches
-        unless @matches <= 1;
-
-    for my $action (@$actions) {
-        if ($action eq 'print' || $action eq 'print_as_string') {
-            $action = 'print_method:as_HTML';
-        } elsif ($action eq 'dump') {
-            #$action = 'dump:tag.class.id';
-            $action = 'dump:preview';
-       }
-    }
-
-    App::CSelUtils::do_actions_on_nodes(
-        nodes   => \@matches,
-        actions => $args{actions},
+            for my $action (@{$args->{node_actions}}) {
+                if ($action eq 'print' || $action eq 'print_as_string') {
+                    $action = 'print_method:as_HTML';
+                } elsif ($action eq 'dump') {
+                    #$action = 'dump:tag.class.id';
+                    $action = 'dump:as_HTML';
+                }
+            }
+        }, # code_transform_actions
     );
 }
 
