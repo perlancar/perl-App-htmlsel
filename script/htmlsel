@@ -18,7 +18,7 @@ Perinci::CmdLine::Any->new(
 
 =head1 SYNOPSIS
 
- % htmlsel '.Element[tag="p"] .Element[tag="b"]' file.html
+ % htmlsel file.html '.Element[tag="p"] .Element[tag="b"]'
 
 
 =head1 DESCRIPTION
