@@ -1,3 +1,10 @@
+0.004   2019-08-01  Released-By: PERLANCAR; Urgency: medium
+
+	- [ux] Read file using read_text() so we can die properly when the
+	  file is not readable, instead of HTML::TreeBuilder->parse_file
+	  which just returns undef on failure.
+
+
 0.003   2019-07-26  Released-By: PERLANCAR; Urgency: medium
 
 	- Rename the original htmlsel (CSS selector variant) to htmlsel to
