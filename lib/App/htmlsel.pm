@@ -37,8 +37,9 @@ sub htmlsel {
         binmode STDIN, ":encoding(utf8)";
         $tree = HTML::TreeBuilder->new->parse_content(join "", <>);
     } else {
-        #require File::Slurper;
-        $tree = HTML::TreeBuilder->new->parse_file($args{file});
+        require File::Slurper;
+        my $content = File::Slurper::read_text($args{file});
+        $tree = HTML::TreeBuilder->new->parse_content($content);
     }
 
     my $patch_handle;
