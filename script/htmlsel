@@ -11,6 +11,8 @@ use Perinci::CmdLine::Any;
 
 Perinci::CmdLine::Any->new(
     url => '/App/htmlsel/htmlsel',
+    read_config => 0,
+    read_env => 0,
 )->run;
 
 # ABSTRACT:
@@ -18,7 +20,7 @@ Perinci::CmdLine::Any->new(
 
 =head1 SYNOPSIS
 
- % htmlsel '.Element[tag="p"] .Element[tag="b"]' file.html
+ % htmlsel file.html '.Element[tag="p"] .Element[tag="b"]'
 
 
 =head1 DESCRIPTION
