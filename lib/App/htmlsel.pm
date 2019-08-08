@@ -26,14 +26,15 @@ sub htmlsel {
             my $args = shift;
 
             require HTML::TreeBuilder;
-            my $tree;
+            my $content;
             if ($args->{file} eq '-') {
                 binmode STDIN, ":encoding(utf8)";
-                $tree = HTML::TreeBuilder->new->parse_content(join "", <>);
+                $content = join "", <STDIN>;
             } else {
-                #require File::Slurper;
-                $tree = HTML::TreeBuilder->new->parse_file($args->{file});
+                require File::Slurper;
+                $content = File::Slurper::read_text($args->{file});
             }
+            my $tree = HTML::TreeBuilder->new->parse_content($content);
 
           PATCH: {
                 last if $App::htmlsel::patch_handle;
