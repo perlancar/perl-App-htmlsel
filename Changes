@@ -1,3 +1,9 @@
+0.009   2019-08-08  Released-By: PERLANCAR; Urgency: medium
+
+        - [build] Rebuild after merge because 0.004.1's changes was not included
+          in releass 0.005-0.008.
+
+
 0.008   2019-08-08  Released-By: PERLANCAR; Urgency: low
 
         - No functional changes.
